@@ -4,6 +4,7 @@ import 'dart:math' as math;
 //import 'package:hive/hive.dart';
 import 'models/word.dart';
 import 'processing.dart';
+import 'dart:math';
 var random = new math.Random();
 
 
@@ -69,14 +70,16 @@ When the exception was thrown, this was the stack:
   onchoise=a;
 
 }
-var tenProblems=List<int>(10);//出題する英単語の番号が入ってる のちに、classのnameにしてもいいかもね これは要素数10の配列を生成するコード
+List<int> tenProblems=new List();//出題する英単語の番号が入ってる のちに、classのnameにしてもいいかもね これは要素数10の配列を生成するコード
 void make10problems()
 {print(todaywords.isEmpty.toString()+"make10");
   if(todaywords.isEmpty) {
-    tenProblems=List<int>(10);
+
+    tenProblems=new List();
     List problems = wordBox.values.toList();
+    int problemSum=min(problems.length,10);
     problems.sort((a, b) => b.priority.compareTo(a.priority));
-    for(int i=0; i<10; i++)tenProblems[i]=problems[i].id;
+    for(int i=0; i<problemSum; i++)tenProblems.add(problems[i].id);
   }
     //tenProblems = wordBox.values.where((word) => word.eng.startsWith('c')).toList();
   else{
@@ -348,7 +351,6 @@ class Summary extends StatelessWidget{
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: Colors.black38),
-
                     ),
                   ),
                   child: ListTile(

@@ -7,22 +7,21 @@ import 'package:hive/hive.dart';
 import 'models/word.dart';
 import 'processing.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'image_detail.dart';
 
-//import 'package:tesseract_ocr/tesseract_ocr.dart';
-//import 'package:image_picker/image_picker.dart';
 
-//import 'package:flutter_native_image/flutter_native_image.dart';
-//import 'package:flutter_portal/flutter_portal.dart';
-//import 'package:camera_camera/camera_camera.dart';
-
-var todaywords=List();
+List<int> todaywords=new List();
 List wordPriority;
 
 final wordBox=Hive.box('words');
 final dataBox=Hive.box('data');
 final dailyBox=Hive.box('daily');
 
-DateTime nowDate;
+
+DateTime now = new DateTime.now();
+DateTime nowDate = new DateTime(now.year, now.month, now.day);
 
 void main() async{
   //debugPrint(questions[0]+"main");
@@ -39,7 +38,7 @@ void main() async{
     print("GOOOO!");
     if(todaydaily.isNotEmpty)//todaywords=todaydaily;
     {
-      for(int i=0;i<todaydaily.length; i++)if(wordBox.containsKey(i))todaywords.add(todaydaily[i]);
+      for(int i=0;i<todaydaily.length; i++)if(wordBox.containsKey(todaydaily[i]))todaywords.add(todaydaily[i]);
       //ループを回し、今も削除されていないものだけ今日の単語に追加
 
     }
@@ -56,6 +55,7 @@ void main() async{
 
    return;
   }
+
   runApp(
       FutureBuilder(
       future: _openBoxes(),
@@ -110,30 +110,51 @@ class EnglishQuizState extends State<EnglishQuiz> {
 
   Widget getInfopage() {
     return Container(color: Colors.lightBlueAccent,
-      child: new Column(
+      child: Scaffold(
+        backgroundColor: Colors.lightBlue[300],
+        body:
+            Center(
+              child: new MaterialButton(
+                minWidth: 200,
+                height: 50.0,
+                color: Colors.white,
+                onPressed: startQuiz,
+                child: new Text(_text,
+                  style: new TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.lightBlue[400]
+                  ),),
+              ),
+            ),
 
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          new MaterialButton(
-            minWidth: 200,
-            height: 50.0,
-            color: Colors.white,
-            onPressed: startQuiz,
-            child: new Text(_text,
-              style: new TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.lightBlue[400]
-              ),),
-          ),
-
-        ],
-      ),);
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.camera_alt),
+        onPressed: () async {
+           await _takePicture().then((File image) {
+             print(image==null);
+            if (image != null) {
+              Navigator.push(
+              context, MaterialPageRoute(
+            builder: (context) => DetailScreen(image),
+        ),);}});
+      }),));
   }
 
   Widget getImportpage() {
     //return Container(color: Colors.lightBlue,);
     return Scaffold(
       backgroundColor: Colors.lightBlue[400],
+      floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add_photo_alternate),
+          onPressed: () async {
+            await _pickPicture().then((File image) {
+              print(image==null);
+              if (image != null) {
+                Navigator.push(
+                  context, MaterialPageRoute(
+                  builder: (context) => DetailScreen(image),
+                ),);}});
+          }),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -149,8 +170,6 @@ class EnglishQuizState extends State<EnglishQuiz> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'English',
-
-
                   ),
                   style: TextStyle(fontSize: 20.0,color: Colors.white),
                   controller: _textFieldController,
@@ -181,7 +200,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                 ),
 
               ),
-          Padding(
+           Padding(
               padding: EdgeInsets.only(top: 10.0),
               child: new MaterialButton(
                   minWidth: 200,
@@ -201,8 +220,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
         ),
 
       ),
-
-    );
+);
   }
 
   Widget getDatapage() {
@@ -269,12 +287,46 @@ class EnglishQuizState extends State<EnglishQuiz> {
   }
     //return Container(color: Colors.lightBlue[600],);
 
+  Future<File> _takePicture() async {
+    File image;
+    try {
+
+      final picker = ImagePicker();
+      final pickedFile = await picker.getImage(source: ImageSource.camera,maxHeight: 1000,maxWidth: 2000 );
+
+      setState(() {
+        image = File(pickedFile.path);
+      });
+    } catch (e) {
+      print("Camera Exception: $e");
+      return null;
+    }
+
+    return image;
+  }
+  Future<File> _pickPicture() async {
+    File image;
+    try {
+
+      final picker = ImagePicker();
+      final pickedFile = await picker.getImage(source: ImageSource.gallery,maxHeight: 1000,maxWidth: 2000 );
+
+      setState(() {
+        image = File(pickedFile.path);
+      });
+    } catch (e) {
+      print("Camera Exception: $e");
+      return null;
+    }
+
+    return image;
+  }
 
   Widget build(BuildContext context) {
     //debugPrint("BUILD!!");
     //print("build!");print(Hive.box('config').get("lastID"));
 
-    _text= todaywords.isNotEmpty ? "Words of Today!" : "Start Quiz";
+    _text= todaywords.isNotEmpty? "Words of Today!" : "Start Quiz";
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -302,7 +354,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
   }
 
   void startQuiz() {
-    if(wordBox.length>4){
+    if(wordBox.length>=4){
 
     setState(() {
       Navigator.push(
@@ -315,7 +367,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('入力してください'),
-              content: Text('登録されている英単語の数が少ないため開始できません。\n10つ以上登録してからもう一度お試しください。'),
+              content: Text('登録されている英単語の数が少ないため開始できません。\n4つ以上登録してからもう一度お試しください。'),
               actions: <Widget>[
                 FlatButton(
                   child: Text('OK'),
@@ -354,7 +406,8 @@ class EnglishQuizState extends State<EnglishQuiz> {
                   else{
                    final newWord = Word(_textFieldController.text, _textFieldController2.text,dataBox.get("lastID",defaultValue: 0)+1,0,0,null,0,0);
                    addWord(newWord);
-                   dataBox.put("lastID",dataBox.get("lastID",defaultValue: 0)+1 );
+                   //dataBox.put("lastID",dataBox.get("lastID",defaultValue: 0)+1 );
+                   //addWord内に移動
 
 
                    setState(() {_textFieldController.text=""; _textFieldController2.text="";});}

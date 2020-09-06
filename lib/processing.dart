@@ -15,6 +15,7 @@ void addWord(Word word) {
   todaywords.add(word.id);
   dailyBox.put(nowDate.toIso8601String(), todaywords);
 
+  dataBox.put("lastID",dataBox.get("lastID",defaultValue: 0)+1 );
 
 }
 void deleteWord(dynamic key)
@@ -23,8 +24,10 @@ void deleteWord(dynamic key)
 }
 
 int calcPriority(Word word)
-{
-  int dif=(word.latestSolveDate.difference(nowDate).inDays).abs();
+{DateTime now = new DateTime.now();
+DateTime nowDate = new DateTime(now.year, now.month, now.day);
+
+  int dif=word.latestSolveDate==null? 0: (word.latestSolveDate.difference(nowDate).inDays).abs();
   int priority=word.score+(dif)*300;
 
   return priority;
