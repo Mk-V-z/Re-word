@@ -29,8 +29,6 @@ Future<String>getMeaning(String engword) async{
     // Write and flush the bytes written
     await File(path).writeAsBytes(bytes, flush: true);
 
-  } else {
-    //print("Opening existing database");
   }
 // open the database
   String str="";
@@ -40,7 +38,6 @@ Future<String>getMeaning(String engword) async{
     str+=element["mean"];
     //print(element["mean"]);
   });
-  print("輝き;明るさ;(自の)あざやかさ".replaceAll(' / ', '\n'));
   str=str.replaceAll(' / ', '\n');
   //print(str);
  return str;

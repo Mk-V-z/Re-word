@@ -8,6 +8,7 @@ import 'dart:math';
 var random = new math.Random();
 
 
+
 var questionNumber = 0;
 var questionCounter = 0;
 var answerState = [Icons.panorama_fish_eye,Icons.close];
@@ -80,8 +81,7 @@ void make10problems()
     int problemSum=min(problems.length,10);
     problems.sort((a, b) => b.priority.compareTo(a.priority));
     for(int i=0; i<problemSum; i++)tenProblems.add(problems[i].id);
-  }
-    //tenProblems = wordBox.values.where((word) => word.eng.startsWith('c')).toList();
+  }//tenProblems = wordBox.values.where((word) => word.eng.startsWith('c')).toList();
   else{
     tenProblems=todaywords;
   }
@@ -334,7 +334,7 @@ class Summary extends StatelessWidget{
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: new Text("Back to Title",
+                child: new Text("ホームへ戻る",
                   style: new TextStyle(
                       fontSize: 20.0,
                       color: Colors.lightBlue[400]

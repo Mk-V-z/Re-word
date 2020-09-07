@@ -5,6 +5,7 @@ import 'dart:async';
 import 'DictAndSQL.dart';
 import 'models/word.dart';
 import 'main.dart';
+import 'dart:math';
 
 final Color disableColor=Colors.grey;
 class EditAfterScan extends StatefulWidget  {
@@ -15,6 +16,7 @@ class EditAfterScan extends StatefulWidget  {
   _EditAfterScanState createState() => new _EditAfterScanState(selectedWords);
 
 }
+
 class _EditAfterScanState extends State<EditAfterScan> {
   final List<String> selectedWords;
   _EditAfterScanState(this.selectedWords);
@@ -25,19 +27,29 @@ class _EditAfterScanState extends State<EditAfterScan> {
   List<List<String>> bracketMeanings=new List();
   List<List<bool>> _meaningState=new List();
   List<TextEditingController>_controller= new List();
+
   Future<void> getMeanings () async{
   //selectedWords.forEach((element) async {meanings.add(await getMeaning(element));});
     if(meanings.isNotEmpty)return (){print(meanings[0]);};
-    meanings=new List(selectedWords.length);
-    bracketMeanings=new List(selectedWords.length);
-    _meaningState=new List(selectedWords.length);
+    int len=selectedWords.length;
+    meanings=[]..length = len;
+    bracketMeanings=[]..length = len;
+    _meaningState=[]..length = len;
     _controller= new List.generate(selectedWords.length,(i)=> new TextEditingController());
   for(int i=0;i<selectedWords.length; i++)meanings[i]=await getMeaning(selectedWords[i]);
   for(int i=0;i<selectedWords.length; i++)bracketMeanings[i]=getExtractionBrackets(meanings[i]);
   for(int i=0;i<selectedWords.length; i++)_meaningState[i]=new List.generate(bracketMeanings[i].length, (i)=> false);
   //print(extractionBrackets(meanings[0]));
-
   return (){print(meanings[0]);};
+  }
+
+  void _delWord(int ind){
+    selectedWords.removeAt(ind);
+    meanings.removeAt(ind);
+    bracketMeanings.removeAt(ind);
+    _meaningState.removeAt(ind);
+    _controller.removeAt(ind);
+    setState(() {});
   }
 
   void _addmeaning (int ind){
@@ -45,19 +57,14 @@ class _EditAfterScanState extends State<EditAfterScan> {
     bracketMeanings[ind].add(_controller[ind].text);
     _meaningState[ind].add(true);
     _controller[ind].clear();
-    setState(() {
-
-    });
+    setState((){});
   }
 
   void _addWordsToBox(){
     for(int i=0;i<selectedWords.length;i++)
       {String jpn= _makeJpn(i);
        Word newWord = Word(selectedWords[i], jpn,dataBox.get("lastID",defaultValue: 0)+1,0,0,null,0,0);
-       addWord(newWord);
-      }
-    //addWord(newWord);
-
+       addWord(newWord);}
   }
 
   String _makeJpn(int ind){
@@ -67,18 +74,34 @@ class _EditAfterScanState extends State<EditAfterScan> {
     str+=bracketMeanings[ind][list.first];
     for(int i=1;i<list.length;i++)str+=",${bracketMeanings[ind][list[i]]}";
     return str;
-
   }
+
 
   void get_canNavigateNext()
   {_canNavigateNext=false;
    for(int i=0;i<_meaningState.length;i++)if(!_meaningState[i].contains(true))return;
    print("gettrue");
    _canNavigateNext=true;
-   return;
+   return;}
 
-  }
+   void _changeWord(int ind,String newEng) async{
+    selectedWords[ind]=newEng;
+    //print("bracketMeanings[ind].length${bracketMeanings[ind].length}");
+    for(int i=bracketMeanings[ind].length-1;0<=i; i--)
+      {if(_meaningState[ind][i])continue;
+        //print("[$ind][$i] (${bracketMeanings[ind][i]})del");
+        bracketMeanings[ind].removeAt(i);
+        _meaningState[ind].removeAt(i);
+      }
+     meanings[ind]=await getMeaning(newEng);
+     bracketMeanings[ind]+=getExtractionBrackets(meanings[ind]);
+     for(int i=0;i<getExtractionBrackets(meanings[ind]).length;i++)_meaningState[ind].add(false);
 
+     setState(() {});
+   }
+
+
+ TextEditingController dialogInputController=new TextEditingController();
   ListView makeWordwidget(){
     return ListView.builder(
         itemCount: selectedWords.length,
@@ -87,7 +110,66 @@ class _EditAfterScanState extends State<EditAfterScan> {
          return Card(
               child:Row(mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  Expanded(flex:3,child: Text(selectedWords[index],style: TextStyle(fontSize: 23),textAlign: TextAlign.center,),),
+                  Expanded(flex:3,child: GestureDetector(
+                      onTap:(){dialogInputController.text=selectedWords[index];
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                              return  Column(
+                                children: <Widget>[
+                                  AlertDialog(
+                                    title: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Text("単語の変更"),
+
+                                      ],
+                                    ),
+                                    content: SingleChildScrollView(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text(selectedWords[index]),
+                                          Icon(Icons.arrow_downward),
+                                          TextField(controller: dialogInputController,textAlign: TextAlign.center,decoration: InputDecoration(labelText: ("change to")),)
+                                  ],
+                                ),
+                              ),
+                          actions: <Widget>[
+
+                                            Container(width:double.maxFinite,
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: <Widget>[
+                                                  Container(margin:EdgeInsets.only(left: 16),
+                                                    child: OutlineButton(
+                                                                  onPressed: (){_delWord(index);Navigator.pop(context);},child:Row(
+                                                                  children: <Widget>[
+                                                                       Icon(Icons.delete,color: Colors.red,),
+                                                                        Text("削除",style: TextStyle(color: Colors.red),)
+                                                                    ],),),
+                                                  ),
+                                                  Row(
+                                                    children: <Widget>[
+                                                      FlatButton(onPressed:(){Navigator.pop(context);},child: Text("Cancel"),),
+                                                      FlatButton(onPressed: (){_changeWord(index,dialogInputController.text);Navigator.pop(context);},
+                                                        child: Text("OK"),)
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                           ]
+
+                            ),
+
+                          ],
+
+                        );
+                      },
+                    );
+                  }, child: Text(selectedWords[index],style: TextStyle(fontSize: 23),textAlign: TextAlign.center,))),
+
+
                   Expanded(flex:7,child: Column(
                     children: <Widget>[
                       Padding(
@@ -130,7 +212,7 @@ class _EditAfterScanState extends State<EditAfterScan> {
                 child: Padding(
                    padding: const EdgeInsets.symmetric(vertical:0,horizontal: 5.0),
                    child: Text(bracketMeanings[index][i],style: TextStyle(fontSize: 19),),
-            )),
+                )),
           ),
         )
     );
@@ -138,6 +220,8 @@ class _EditAfterScanState extends State<EditAfterScan> {
     }
     return list;
   }
+
+
   @override
   Widget build(BuildContext context) {
     return  FutureBuilder(
@@ -145,14 +229,14 @@ class _EditAfterScanState extends State<EditAfterScan> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if(snapshot.hasData)
             {print("ok!");    get_canNavigateNext();
-            print(_canNavigateNext);
+            //print(_canNavigateNext);
 
             return Scaffold(
                 appBar: AppBar(title: Text("Image Details"),),
-          body:makeWordwidget(),
-                
+                body:makeWordwidget(),
+
                 floatingActionButton: _canNavigateNext ? FloatingActionButton.extended(
-              onPressed: () {
+                  onPressed: () {
                 _addWordsToBox();
                 Navigator.pop(context);
                 Navigator.pop(context);

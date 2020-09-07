@@ -1,7 +1,5 @@
-//import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './quiz1.dart';
-//import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:hive/hive.dart';
 import 'models/word.dart';
@@ -10,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'image_detail.dart';
+
 
 
 List<int> todaywords=new List();
@@ -30,17 +29,14 @@ void main() async{
   Hive.init(appDocumentDir.path);
 
   Future<void> _checkDaily() async{
-
     DateTime now = new DateTime.now();
     nowDate = new DateTime(now.year, now.month, now.day);
     //List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>());
     List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>()).cast<int>();
     print("GOOOO!");
     if(todaydaily.isNotEmpty)//todaywords=todaydaily;
-    {
-      for(int i=0;i<todaydaily.length; i++)if(wordBox.containsKey(todaydaily[i]))todaywords.add(todaydaily[i]);
+    {for(int i=0;i<todaydaily.length; i++)if(wordBox.containsKey(todaydaily[i]))todaywords.add(todaydaily[i]);
       //ループを回し、今も削除されていないものだけ今日の単語に追加
-
     }
   }
 
@@ -52,7 +48,6 @@ void main() async{
    debugPrint("point2");
    _checkDaily();
    calcPriorityWithDate();
-
    return;
   }
 
@@ -68,6 +63,7 @@ void main() async{
                                 localizationsDelegates: [
                                   GlobalMaterialLocalizations.delegate,
                                   GlobalWidgetsLocalizations.delegate,
+                                  GlobalCupertinoLocalizations.delegate,
                                   ],
                                 supportedLocales: [
                                   Locale('ja', 'JP'),
@@ -80,7 +76,7 @@ void main() async{
            color: Colors.white,
            child: Center(child:  CircularProgressIndicator()),
          );
-          }
+      }
   )
   );
   Hive.registerAdapter(WordAdapter(),0);
@@ -136,7 +132,8 @@ class EnglishQuizState extends State<EnglishQuiz> {
               Navigator.push(
               context, MaterialPageRoute(
             builder: (context) => DetailScreen(image),
-        ),);}});
+        ),).then((value) =>  setState((){}));
+            }});
       }),));
   }
 
@@ -153,7 +150,8 @@ class EnglishQuizState extends State<EnglishQuiz> {
                 Navigator.push(
                   context, MaterialPageRoute(
                   builder: (context) => DetailScreen(image),
-                ),);}});
+                ),).then((value) =>  setState((){}));
+              }});
           }),
       body: Center(
         child: SingleChildScrollView(
@@ -224,12 +222,15 @@ class EnglishQuizState extends State<EnglishQuiz> {
   }
 
   Widget getDatapage() {
+    TextEditingController dialogEngController=new TextEditingController();
+    TextEditingController dialogJpnController=new TextEditingController();
     return Scaffold(
         backgroundColor: Colors.lightBlue,
         body:ListView.builder(
 
           itemBuilder: (BuildContext context, int index) {
             Word word=wordBox.getAt(index);
+
             return Container(
                 decoration: BoxDecoration(
                   border: Border(
@@ -249,15 +250,98 @@ class EnglishQuizState extends State<EnglishQuiz> {
                   subtitle: Text(word.jpn,style: TextStyle(
                       color: Colors.white70)),
 
+                  onTap: () {print(word.id); print(dataBox.get("lastID"));
+
+                  dialogEngController.text=word.eng;
+                  dialogJpnController.text=word.jpn;
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return  Column(
+                        children: <Widget>[
+                          AlertDialog(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text("単語の変更"),
+
+                                ],
+                              ),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  children: <Widget>[
+                                    TextField(controller: dialogEngController,textAlign: TextAlign.center,decoration: InputDecoration(labelText: ("English")),),
+                                    TextField(controller: dialogJpnController,textAlign: TextAlign.center,decoration: InputDecoration(labelText: ("Japanese")),)
+                                  ],
+                                ),
+                              ),
+                              actions: <Widget>[
+
+                                Container(width:double.maxFinite,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Container(margin:EdgeInsets.only(left: 16),
+                                        child: OutlineButton(
+                                          onPressed: (){showDialog(
+                                                  context: context,
+                                                   barrierDismissible: true,
+                                                  builder: (BuildContext context) {
+
+                                                      return AlertDialog(
+                                                         title: Text('削除しますか？'),
+                                                         content: Text("”"+(index+1).toString()+" : "+word.eng+'”を削除しますか？'),
+                                                        actions: <Widget>[
+                                                        FlatButton(
+                                                         child: Text('Cancel'),
+                                                          onPressed: () => Navigator.of(context).pop(1),
+                                                         ),
+                                                        FlatButton(
+                                                           child: Text('OK'),
+                                                          onPressed: (){Navigator.of(context).pop(1); dellist(index);}, //correctAnswers.removeAt(index),
+                                                        ),],
+                                                       );
+                                                  });Navigator.pop(context);}
+                                              ,child:Row(
+                                          children: <Widget>[
+                                            Icon(Icons.delete,color: Colors.red,),
+                                            Text("削除",style: TextStyle(color: Colors.red),)
+                                          ],),),
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          FlatButton(child: Text("Cancel"),onPressed:(){Navigator.pop(context);},),
+                                          FlatButton(child: Text("OK"),onPressed: (){
+                                            word.eng=dialogEngController.text;
+                                            word.jpn=dialogJpnController.text;
+                                            wordBox.putAt(index, word);
+                                            setState(() {});
+                                            Navigator.pop(context);},
+                                            )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ]
+
+                          ),
+
+                        ],
+
+                      );
+                    },
+                  );
 
 
-                  onTap: () {print(word.id); print(dataBox.get("lastID"));showDialog<int>(
+                  /*showDialog(
                       context: context,
                       barrierDismissible: true,
                       builder: (BuildContext context) {
+
                         return AlertDialog(
                           title: Text('削除しますか？'),
-                          content: Text("”"+(index+1).toString()+" : "+word.eng+'”を削除しますか？\nこの操作は取り消せません。'),
+                          content: Text("”"+(index+1).toString()+" : "+word.eng+'”を削除しますか？'),
                           actions: <Widget>[
                             FlatButton(
                               child: Text('Cancel'),
@@ -267,10 +351,9 @@ class EnglishQuizState extends State<EnglishQuiz> {
                               child: Text('OK'),
                               onPressed: (){Navigator.of(context).pop(1); dellist(index);}, //correctAnswers.removeAt(index),
                             ),
-
                           ],
                         );
-                      }); },
+                      });*/ },
                 ));},
           itemCount:wordBox.length, //questions.length,
         ));
@@ -290,7 +373,6 @@ class EnglishQuizState extends State<EnglishQuiz> {
   Future<File> _takePicture() async {
     File image;
     try {
-
       final picker = ImagePicker();
       final pickedFile = await picker.getImage(source: ImageSource.camera,maxHeight: 1000,maxWidth: 2000 );
 
@@ -358,7 +440,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
 
     setState(() {
       Navigator.push(
-          context, new MaterialPageRoute(builder: (context) => new Quiz1()));}
+          context, new MaterialPageRoute(builder: (context) => new Quiz1())).then((value) =>  setState((){}));}
     );}
     else{
       showDialog<int>(
