@@ -11,7 +11,6 @@ MERGED from [:image_picker] /Users/mkv/AndroidStudioProjects/reword/build/image_
 MERGED from [:flutter_plugin_android_lifecycle] /Users/mkv/AndroidStudioProjects/reword/build/flutter_plugin_android_lifecycle/intermediates/library_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:sqflite] /Users/mkv/AndroidStudioProjects/reword/build/sqflite/intermediates/library_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [:path_provider] /Users/mkv/AndroidStudioProjects/reword/build/path_provider/intermediates/library_manifest/debug/AndroidManifest.xml:2:1-7:12
-MERGED from [:flutter_native_image] /Users/mkv/AndroidStudioProjects/reword/build/flutter_native_image/intermediates/library_manifest/debug/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.exifinterface:exifinterface:1.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/6165e964f01e5bc25bb413b739666f97/exifinterface-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.gms:play-services-auth-base:17.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/4e748032d6df9c51e217df12fef202ab/play-services-auth-base-17.0.0/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.gms:play-services-vision:19.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/6027276f4442973a53938c5009069fa2/play-services-vision-19.0.0/AndroidManifest.xml:2:1-9:12
@@ -172,8 +171,6 @@ MERGED from [:sqflite] /Users/mkv/AndroidStudioProjects/reword/build/sqflite/int
 MERGED from [:sqflite] /Users/mkv/AndroidStudioProjects/reword/build/sqflite/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider] /Users/mkv/AndroidStudioProjects/reword/build/path_provider/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [:path_provider] /Users/mkv/AndroidStudioProjects/reword/build/path_provider/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_native_image] /Users/mkv/AndroidStudioProjects/reword/build/flutter_native_image/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
-MERGED from [:flutter_native_image] /Users/mkv/AndroidStudioProjects/reword/build/flutter_native_image/intermediates/library_manifest/debug/AndroidManifest.xml:5:5-44
 MERGED from [androidx.exifinterface:exifinterface:1.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/6165e964f01e5bc25bb413b739666f97/exifinterface-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.exifinterface:exifinterface:1.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/6165e964f01e5bc25bb413b739666f97/exifinterface-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [com.google.android.gms:play-services-auth-base:17.0.0] /Users/mkv/.gradle/caches/transforms-2/files-2.1/4e748032d6df9c51e217df12fef202ab/play-services-auth-base-17.0.0/AndroidManifest.xml:5:5-44

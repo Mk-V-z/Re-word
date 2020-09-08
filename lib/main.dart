@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import './quiz1.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:hive/hive.dart';
-import 'models/word.dart';
-import 'processing.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'image_detail.dart';
+import './quiz1.dart';
+import './models/word.dart';
+import './processing.dart';
+import './image_detail.dart';
 
 
 
@@ -260,13 +260,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                       return  Column(
                         children: <Widget>[
                           AlertDialog(
-                              title: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text("単語の変更"),
-
-                                ],
-                              ),
+                              title: Text("単語の編集"),
                               content: SingleChildScrollView(
                                 child: Column(
                                   children: <Widget>[
@@ -283,7 +277,10 @@ class EnglishQuizState extends State<EnglishQuiz> {
                                     children: <Widget>[
                                       Container(margin:EdgeInsets.only(left: 16),
                                         child: OutlineButton(
-                                          onPressed: (){showDialog(
+                                          onPressed: (){
+                                            print("pressed!");
+                                            dellist(index);
+                                            /*showDialog(
                                                   context: context,
                                                    barrierDismissible: true,
                                                   builder: (BuildContext context) {
@@ -301,7 +298,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                                                           onPressed: (){Navigator.of(context).pop(1); dellist(index);}, //correctAnswers.removeAt(index),
                                                         ),],
                                                        );
-                                                  });Navigator.pop(context);}
+                                                  });*/Navigator.pop(context);}
                                               ,child:Row(
                                           children: <Widget>[
                                             Icon(Icons.delete,color: Colors.red,),
@@ -312,6 +309,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                                         children: <Widget>[
                                           FlatButton(child: Text("Cancel"),onPressed:(){Navigator.pop(context);},),
                                           FlatButton(child: Text("OK"),onPressed: (){
+
                                             word.eng=dialogEngController.text;
                                             word.jpn=dialogJpnController.text;
                                             wordBox.putAt(index, word);
