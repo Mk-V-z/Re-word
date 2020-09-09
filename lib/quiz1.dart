@@ -255,8 +255,8 @@ class Quiz1State extends State<Quiz1>{
     setState((){
       if(questionCounter == tenProblems.length -1){
         //終了処理
-        Navigator.push(context, new MaterialPageRoute(builder:(context)=> new Summary(/*score: 12345,*/)));
-        if(tenProblems.isNotEmpty) assignToCurve();
+        Navigator.push(context, new MaterialPageRoute(builder:(context)=> new Summary()));
+        if(todaywords.isNotEmpty) assignToCurve();
         calcScore(tenProblems,answerTimer,answerState);
 
 
@@ -327,7 +327,7 @@ class Summary extends StatelessWidget{
                 shape: Border.all(width: 1.0, color:Colors.lightBlue[400]),
                 onPressed: () {
                   //クイズの後のサマリー画面終了時のリセット reset
-                  todaywords=List<int>();
+
                   answerState[0] = Icons.panorama_fish_eye;
                   questionNumber = 0;
                   questionCounter = 0;

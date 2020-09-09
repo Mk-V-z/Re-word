@@ -102,6 +102,60 @@ class _EditAfterScanState extends State<EditAfterScan> {
 
 
  TextEditingController dialogInputController=new TextEditingController();
+
+  Widget _editDialog(int index){
+    return Column(
+      children: <Widget>[
+        AlertDialog(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text("単語の変更"),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  Text(selectedWords[index]),
+                  Icon(Icons.arrow_downward),
+                  TextField(controller: dialogInputController,textAlign: TextAlign.center,
+                    decoration: InputDecoration(labelText: ("change to")),autofocus: true,)
+                ],
+              ),
+            ),
+            actions: <Widget>[
+
+              Container(width:double.maxFinite,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Container(margin:EdgeInsets.only(left: 16),
+                      child: OutlineButton(
+                        onPressed: (){_delWord(index);Navigator.pop(context);},child:Row(
+                        children: <Widget>[
+                          Icon(Icons.delete,color: Colors.red,),
+                          Text("削除",style: TextStyle(color: Colors.red),)
+                        ],),),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        FlatButton(onPressed:(){Navigator.pop(context);},child: Text("Cancel"),),
+                        FlatButton(onPressed: (){_changeWord(index,dialogInputController.text);Navigator.pop(context);},
+                          child: Text("OK"),)
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ]
+
+        ),
+
+      ],
+
+    );
+  }
+
   ListView makeWordwidget(){
     return ListView.builder(
         itemCount: selectedWords.length,
@@ -114,60 +168,10 @@ class _EditAfterScanState extends State<EditAfterScan> {
                       onTap:(){dialogInputController.text=selectedWords[index];
                         showDialog(
                           context: context,
-                          builder: (context) {
-                              return  Column(
-                                children: <Widget>[
-                                  AlertDialog(
-                                    title: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        Text("単語の変更"),
-
-                                      ],
-                                    ),
-                                    content: SingleChildScrollView(
-                                      child: Column(
-                                        children: <Widget>[
-                                          Text(selectedWords[index]),
-                                          Icon(Icons.arrow_downward),
-                                          TextField(controller: dialogInputController,textAlign: TextAlign.center,decoration: InputDecoration(labelText: ("change to")),)
-                                  ],
-                                ),
-                              ),
-                          actions: <Widget>[
-
-                                            Container(width:double.maxFinite,
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: <Widget>[
-                                                  Container(margin:EdgeInsets.only(left: 16),
-                                                    child: OutlineButton(
-                                                                  onPressed: (){_delWord(index);Navigator.pop(context);},child:Row(
-                                                                  children: <Widget>[
-                                                                       Icon(Icons.delete,color: Colors.red,),
-                                                                        Text("削除",style: TextStyle(color: Colors.red),)
-                                                                    ],),),
-                                                  ),
-                                                  Row(
-                                                    children: <Widget>[
-                                                      FlatButton(onPressed:(){Navigator.pop(context);},child: Text("Cancel"),),
-                                                      FlatButton(onPressed: (){_changeWord(index,dialogInputController.text);Navigator.pop(context);},
-                                                        child: Text("OK"),)
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                           ]
-
-                            ),
-
-                          ],
-
-                        );
-                      },
+                          builder: (context) {return  _editDialog(index);},
                     );
-                  }, child: Text(selectedWords[index],style: TextStyle(fontSize: 23),textAlign: TextAlign.center,))),
+                  }, child: FittedBox(fit:BoxFit.scaleDown,
+                        child:Text(selectedWords[index],style: TextStyle(fontSize: 30),textAlign: TextAlign.center,)))),
 
 
                   Expanded(flex:7,child: Column(

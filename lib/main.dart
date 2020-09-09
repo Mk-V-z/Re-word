@@ -7,8 +7,7 @@ import 'dart:io';
 import './quiz1.dart';
 import './models/word.dart';
 import './processing.dart';
-import './image_detail.dart';
-
+import './imageProcessor.dart';
 
 
 List<int> todaywords=new List();
@@ -19,21 +18,22 @@ final dataBox=Hive.box('data');
 final dailyBox=Hive.box('daily');
 
 
-DateTime now = new DateTime.now();
-DateTime nowDate = new DateTime(now.year, now.month, now.day);
+
 
 void main() async{
   //debugPrint(questions[0]+"main");
   WidgetsFlutterBinding.ensureInitialized();
   final appDocumentDir = await path_provider.getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
+  DateTime now = new DateTime.now();
+  DateTime nowDate = new DateTime(now.year, now.month, now.day);
 
   Future<void> _checkDaily() async{
     DateTime now = new DateTime.now();
     nowDate = new DateTime(now.year, now.month, now.day);
     //List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>());
     List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>()).cast<int>();
-    print("GOOOO!");
+    print(todaydaily.length);
     if(todaydaily.isNotEmpty)//todaywords=todaydaily;
     {for(int i=0;i<todaydaily.length; i++)if(wordBox.containsKey(todaydaily[i]))todaywords.add(todaydaily[i]);
       //ループを回し、今も削除されていないものだけ今日の単語に追加
@@ -59,7 +59,7 @@ void main() async{
          { if(snapshot.hasError)return Text(snapshot.error.toString(),textDirection: TextDirection.ltr);
            else{
                       return new MaterialApp(debugShowCheckedModeBanner: false,
-                                //flutter_localizationsで中華フォントから日本語フォントに
+                                //flutter_localizationsで中国語フォントから日本語フォントに
                                 localizationsDelegates: [
                                   GlobalMaterialLocalizations.delegate,
                                   GlobalWidgetsLocalizations.delegate,
@@ -124,6 +124,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
             ),
 
       floatingActionButton: FloatingActionButton(
+          heroTag: "FABinInfo",
         child: Icon(Icons.camera_alt),
         onPressed: () async {
            await _takePicture().then((File image) {
@@ -142,6 +143,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
     return Scaffold(
       backgroundColor: Colors.lightBlue[400],
       floatingActionButton: FloatingActionButton(
+          heroTag: "FABinImport",
           child: Icon(Icons.add_photo_alternate),
           onPressed: () async {
             await _pickPicture().then((File image) {
