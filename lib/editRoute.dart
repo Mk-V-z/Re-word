@@ -249,7 +249,21 @@ class _EditAfterScanState extends State<EditAfterScan> {
               label: Text("次へ"),
             )
                 : FloatingActionButton.extended(
-              onPressed:null,
+              onPressed:  (){showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('入力してください'),
+                      content: Text('和訳が指定されていない英単語があります。\n全ての単語に和訳を一つ以上指定してからもう一度お試しください。\n(＋の左側をタップすることで、任意の和訳を追加できます)'),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text('OK'),
+                          onPressed: () => Navigator.of(context).pop(1),
+                        ),
+                      ],
+                    );
+                  });},
               icon: new Icon(Icons.navigate_next),
               label: Text("和訳をタップして選択"),
               backgroundColor: disableColor,

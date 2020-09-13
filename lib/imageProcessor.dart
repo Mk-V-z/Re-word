@@ -6,21 +6,20 @@ import 'dart:io';
 import 'dart:ui';
 import 'dart:async';
 
-import 'DictAndSQL.dart';
 final Color disableColor=Colors.grey;
-class DetailScreen extends StatefulWidget {
+class SelectWordsRoute extends StatefulWidget {
   final File image;
-  DetailScreen(this.image);
+  SelectWordsRoute(this.image);
 
   @override
-  _DetailScreenState createState() => new _DetailScreenState(image);
+  _SelectWordsRouteState createState() => new _SelectWordsRouteState(image);
 }
 
-class _DetailScreenState extends State<DetailScreen> {
+class _SelectWordsRouteState extends State<SelectWordsRoute> {
   final widgetKey = GlobalKey();
 
   final File image;
-  _DetailScreenState(this.image);
+  _SelectWordsRouteState(this.image);
 
 
   Size _imageSize;
@@ -32,6 +31,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
     if (imageFile != null) {
       await _getImageSize(imageFile);
+
     }
 
     final FirebaseVisionImage visionImage =
@@ -43,15 +43,13 @@ class _DetailScreenState extends State<DetailScreen> {
     final VisionText visionText =
     await textRecognizer.processImage(visionImage);
 
-    //RegExp regEX_aZ =RegExp(r'^[a-zA-Z]+$');
-    String mailAddress = "";
+
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
         if (line.text.length>2) {
           for (TextElement element in line.elements) {
             if(element.text.length<2||!RegExp(r'^[a-zA-Z/,.?!;]+$').hasMatch(element.text))continue;
             _elements.add(element);
-            mailAddress += element.text + '\n';
           }
         }
       }
@@ -59,7 +57,6 @@ class _DetailScreenState extends State<DetailScreen> {
 
     if (this.mounted) {
       setState(() {
-        recognizedText = mailAddress;
       });
     }
   }
@@ -97,6 +94,7 @@ class _DetailScreenState extends State<DetailScreen> {
     _initializeVision();
     super.initState();
   }
+
   Offset globalOffset;
   Size imageSize;
   List<Color> colors;
@@ -111,6 +109,8 @@ class _DetailScreenState extends State<DetailScreen> {
     final double scaleX = imageSize.width / absoluteImageSize.width;
     final double scaleY = imageSize.height / absoluteImageSize.height;
     print(globalOffset);
+    print("${imageSize.width}:${absoluteImageSize.width}");
+  print("${imageSize.height}:${absoluteImageSize.height}");
 
     if(colors==null) colors=new List.generate(elements.length, (i)=>Colors.blueGrey);
     if(isSelected==null) isSelected=new List.generate(elements.length, (i)=>false);
@@ -119,7 +119,7 @@ class _DetailScreenState extends State<DetailScreen> {
       Rect boundingBox = elements[i].boundingBox;
       widgets.add(Positioned(
         top: scaleY * boundingBox.top,
-        left: scaleX * boundingBox.left,
+        left:  globalOffset.dx+scaleX * boundingBox.left,
         width: (boundingBox.left - boundingBox.right).abs() * scaleX*1.0,
         height: (boundingBox.bottom - boundingBox.top).abs() * scaleY*1.05,//すこし拡大
         child: GestureDetector(
@@ -145,22 +145,26 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
 
-
+  var pastOrientation;
   @override
   Widget build(BuildContext context) {
     debugPrint("build!");
-    if(imageSize==null){
+    if(pastOrientation==null)pastOrientation=MediaQuery.of(context).orientation;
+
+    if(imageSize==null||pastOrientation!=MediaQuery.of(context).orientation){
       WidgetsBinding.instance.addPostFrameCallback((_){RenderBox box = widgetKey.currentContext.findRenderObject();
       globalOffset = box.localToGlobal(Offset.zero);
       imageSize= box.size;});
       setState(() {
 
-      });}
+      });
+      pastOrientation=MediaQuery.of(context).orientation;}
     bool canNavigateNext =(isSelected!=null&&isSelected.contains(true));
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Image Details"),
+        title: Text("Select Words"),
       ),
       body: _imageSize != null
           ? Stack(
@@ -168,8 +172,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
           Align(alignment: Alignment.topCenter,
             child: Container(
-              width: double.maxFinite,
-              color: Colors.black,
+              //color:Colors.black,
               child: Image.file(
                 image,
                 key: widgetKey,
@@ -180,10 +183,10 @@ class _DetailScreenState extends State<DetailScreen> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Card(
-              elevation: 8,
+              elevation: 10,
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +195,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: Text(
-                        "Selected words",
+                        "Selected:",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -201,7 +204,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                     Container(
                       width: double.maxFinite,
-                      height: 60,
+                      height: 80,
                       child: SingleChildScrollView(
                         child: Text(
                           _listToString(_getSelectedWords()),

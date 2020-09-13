@@ -3,12 +3,14 @@ import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:reword/Tutorial.dart';
 import 'dart:io';
-import './quiz1.dart';
+import './quiz.dart';
 import './models/word.dart';
 import './processing.dart';
 import './imageProcessor.dart';
-
+import './DictAndSQL.dart';
+import './Tutorial.dart';
 
 List<int> todaywords=new List();
 List wordPriority;
@@ -18,10 +20,10 @@ final dataBox=Hive.box('data');
 final dailyBox=Hive.box('daily');
 
 
-
+bool isFirstBoot = false;
+const isFirstBootKey = "isFirstBoot";
 
 void main() async{
-  //debugPrint(questions[0]+"main");
   WidgetsFlutterBinding.ensureInitialized();
   final appDocumentDir = await path_provider.getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
@@ -31,7 +33,6 @@ void main() async{
   Future<void> _checkDaily() async{
     DateTime now = new DateTime.now();
     nowDate = new DateTime(now.year, now.month, now.day);
-    //List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>());
     List<int> todaydaily=dailyBox.get(nowDate.toIso8601String(),defaultValue: List<int>()).cast<int>();
     print(todaydaily.length);
     if(todaydaily.isNotEmpty)//todaywords=todaydaily;
@@ -46,6 +47,7 @@ void main() async{
    await Hive.openBox("data");
    await Hive.openBox("daily");
    debugPrint("point2");
+   if(dataBox.get(isFirstBootKey,defaultValue: true)==true)isFirstBoot = true;
    _checkDaily();
    calcPriorityWithDate();
    return;
@@ -83,7 +85,7 @@ void main() async{
 }
 
 class EnglishQuiz extends StatefulWidget  {
-  // This widget is the root of your application.
+
   @override
   State<StatefulWidget> createState(){
     return new EnglishQuizState();
@@ -99,8 +101,15 @@ class EnglishQuizState extends State<EnglishQuiz> {
 
   String _text= todaywords.isNotEmpty ? "Words of Today!" : "Start Quiz";
   void initState() {
+    if(isFirstBoot)_navToTutorial();
     super.initState();
    }
+
+  void _navToTutorial()async{
+    await Future.delayed(Duration.zero);
+    Navigator.push(
+        context, new MaterialPageRoute(builder: (context) => new Tutorial()));
+  }
 
 
 
@@ -109,18 +118,32 @@ class EnglishQuizState extends State<EnglishQuiz> {
       child: Scaffold(
         backgroundColor: Colors.lightBlue[300],
         body:
-            Center(
-              child: new MaterialButton(
-                minWidth: 200,
-                height: 50.0,
-                color: Colors.white,
-                onPressed: startQuiz,
-                child: new Text(_text,
-                  style: new TextStyle(
-                      fontSize: 20.0,
-                      color: Colors.lightBlue[400]
-                  ),),
-              ),
+            Stack(
+              children: <Widget>[
+                /*Align(
+                  alignment:Alignment.bottomLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: FloatingActionButton(
+                      onPressed: null,
+                      child: Icon(Icons.help),
+                    ),
+                  )
+                ),*/
+                Center(
+                  child: new MaterialButton(
+                    minWidth: 200,
+                    height: 50.0,
+                    color: Colors.white,
+                    onPressed: startQuiz,
+                    child: new Text(_text,
+                      style: new TextStyle(
+                          fontSize: 20.0,
+                          color: Colors.lightBlue[400]
+                      ),),
+                  ),
+                ),
+              ],
             ),
 
       floatingActionButton: FloatingActionButton(
@@ -132,10 +155,20 @@ class EnglishQuizState extends State<EnglishQuiz> {
             if (image != null) {
               Navigator.push(
               context, MaterialPageRoute(
-            builder: (context) => DetailScreen(image),
+            builder: (context) => SelectWordsRoute(image),
         ),).then((value) =>  setState((){}));
             }});
       }),));
+  }
+  String meaningText="";
+
+  void _changeMeanigText(String eng) async{
+    List<String> brackets=getExtractionBrackets(await getMeaning(eng));
+    meaningText="和訳例:${brackets.isEmpty ? "":brackets.toString()}";
+    if(eng=="")meaningText="";
+    setState(() {
+
+    });
   }
 
   Widget getImportpage() {
@@ -151,7 +184,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
               if (image != null) {
                 Navigator.push(
                   context, MaterialPageRoute(
-                  builder: (context) => DetailScreen(image),
+                  builder: (context) => SelectWordsRoute(image),
                 ),).then((value) =>  setState((){}));
               }});
           }),
@@ -164,8 +197,10 @@ class EnglishQuizState extends State<EnglishQuiz> {
              Padding(
                  padding: EdgeInsets.only(bottom: 40.0),
                  child:Text(_textFieldController.text+" / "+_textFieldController2.text, textAlign: TextAlign.center, style: TextStyle(fontSize: 22.0,color: Colors.white),),),
+              Container(margin: EdgeInsets.all(10.0),
+                  child: Text(meaningText,style: TextStyle(color:Colors.black87),)),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+                padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
                 alignment: Alignment.center,
                 child: TextField(
                   decoration: InputDecoration(
@@ -175,6 +210,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                   controller: _textFieldController,
 
                   onChanged: (String value){
+                    _changeMeanigText(_textFieldController.text);
                     setState(() {
 
                     });
@@ -228,6 +264,12 @@ class EnglishQuizState extends State<EnglishQuiz> {
     TextEditingController dialogJpnController=new TextEditingController();
     return Scaffold(
         backgroundColor: Colors.lightBlue,
+        floatingActionButton: FloatingActionButton(child: Icon(Icons.event_note),
+          onPressed: () => showLicensePage(
+          context: context,
+          applicationName: 'Re:word',
+          applicationVersion: '1.0.1',
+        ),),
         body:ListView.builder(
 
           itemBuilder: (BuildContext context, int index) {
@@ -246,7 +288,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
                         fontSize: 20,
                         color: Colors.white
                     ),),
-                  trailing: Text(word.priority.toString()+":"+word.score.toString()),
+                  //trailing: Text((word.priority/100.0).toString()),
                   title: Text(word.eng,style: TextStyle(fontSize: 18,
                       color: Colors.white)),
                   subtitle: Text(word.jpn,style: TextStyle(
@@ -331,29 +373,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
 
                       );
                     },
-                  );
-
-
-                  /*showDialog(
-                      context: context,
-                      barrierDismissible: true,
-                      builder: (BuildContext context) {
-
-                        return AlertDialog(
-                          title: Text('削除しますか？'),
-                          content: Text("”"+(index+1).toString()+" : "+word.eng+'”を削除しますか？'),
-                          actions: <Widget>[
-                            FlatButton(
-                              child: Text('Cancel'),
-                              onPressed: () => Navigator.of(context).pop(1),
-                            ),
-                            FlatButton(
-                              child: Text('OK'),
-                              onPressed: (){Navigator.of(context).pop(1); dellist(index);}, //correctAnswers.removeAt(index),
-                            ),
-                          ],
-                        );
-                      });*/ },
+                  );},
                 ));},
           itemCount:wordBox.length, //questions.length,
         ));
@@ -373,8 +393,9 @@ class EnglishQuizState extends State<EnglishQuiz> {
   Future<File> _takePicture() async {
     File image;
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.getImage(source: ImageSource.camera,maxHeight: 1000,maxWidth: 2000 );
+
+      final picker = new ImagePicker();
+      final pickedFile = await picker.getImage(source: ImageSource.camera,maxHeight: 2000,maxWidth: 2000 );
 
       setState(() {
         image = File(pickedFile.path);
@@ -390,8 +411,8 @@ class EnglishQuizState extends State<EnglishQuiz> {
     File image;
     try {
 
-      final picker = ImagePicker();
-      final pickedFile = await picker.getImage(source: ImageSource.gallery,maxHeight: 1000,maxWidth: 2000 );
+      final picker = new ImagePicker();
+      final pickedFile = await picker.getImage(source: ImageSource.gallery,maxHeight: 2000,maxWidth: 2000 );
 
       setState(() {
         image = File(pickedFile.path);
@@ -407,8 +428,24 @@ class EnglishQuizState extends State<EnglishQuiz> {
   Widget build(BuildContext context) {
     //debugPrint("BUILD!!");
     //print("build!");print(Hive.box('config').get("lastID"));
-
-    _text= todaywords.isNotEmpty? "Words of Today!" : "Start Quiz";
+     /* if(isFirstBoot){
+        showDialog<int>(
+            context: context,
+            barrierDismissible: true,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Re:wordへようこそ！'),
+                content: Text('これはチュートリアルなんです。'),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('OK'),
+                    onPressed: () => Navigator.of(context).pop(1),
+                  ),
+                ],
+              );
+            });
+      }*/
+    _text= todaywords.isNotEmpty? "Today's Words" : "Start Quiz";
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -443,7 +480,7 @@ class EnglishQuizState extends State<EnglishQuiz> {
           context, new MaterialPageRoute(builder: (context) => new Quiz1())).then((value) =>  setState((){}));}
     );}
     else{
-      showDialog<int>(
+      showDialog(
           context: context,
           barrierDismissible: true,
           builder: (BuildContext context) {
